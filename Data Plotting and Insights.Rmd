@@ -1,0 +1,52 @@
+---
+output: html_document
+---
+
+## Dhading School Survey: Plotting and Insights
+In this document, we try to generate relavnt insights around schools from the Dhading Schools Survey, and also play with RMarkdown for storing this information
+
+### Load required libraries
+```{r}
+# Load Libraries
+library(tmap)
+library(leaflet)
+```
+
+### Load files
+The following two files will be loaded:
+* ddng_poly: Which contains polygon information for all VDCs in Dhading
+* ddng_sch: Which contains scjool level coordinates, as well as attribute data
+
+```{r}
+ddng_poly<-readRDS("data/ddng_poly.Rds")
+ddng_sch<-readRDS("data/ddng_sch.Rds")
+
+summary(ddng_sch@data)
+```
+
+
+
+### Plot maps
+
+#### Plot 1: Distribution of schools by VDC
+
+```{r}
+ddng_poly_agg<-aggregate(x<-ddng_sch["no_students_total"], by=ddng_poly, FUN="length")
+tm_shape(ddng_poly_agg)+tm_fill(col = "no_students_total", title="Total Schools Surveyed", palette="Blues") + tm_borders()
+
+pal <- colorNumeric(
+  palette = c("yellow","red"),
+  domain = ddng_poly_agg$no_students_total
+)
+
+ddng_poly_agg %>% leaflet() %>% addTiles() %>% addPolygons(fillOpacity = .8,color = ~pal(no_students_total),weight = 0.5)%>%addMarkers(data=ddng_sch, popup=~as.character(ddng_sch$school_name),clusterOptions=markerClusterOptions() )
+
+
+# ddng_poly_agg %>% leaflet() %>% addTiles() %>% addPolygons(fillOpacity = .8,fillColor = topo.colors(10, alpha = NULL),weight = 0.5)%>%addMarkers(data=ddng_sch, clusterOptions=markerClusterOptions() )
+
+```
+
+
+
+
+<!-- ddng_poly_agg %>% leaflet() %>% addTiles() %>% addPolygons(fillColor = topo.colors(10, alpha = NULL),popup=~vdc_label) -->
